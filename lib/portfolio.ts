@@ -1,30 +1,13 @@
-import fs from 'fs/promises'
-import path from 'path'
+import fs from "node:fs/promises";
+import path from "node:path";
 
-export interface PortfolioData {
-  owner: {
-    name: string
-    tagline: string
-    role_modes: { key: string; label: string }[]
-  }
-  highlights: Record<string, any>
-  segments: Array<any>
+export async function loadPortfolio() {
+  const dir = path.join(process.cwd(), "data");
+  const main = path.join(dir, "portfolio.content.json");
+  const fallback = path.join(dir, "portfolio.content.example.json");
+  const file = await fs.readFile(main, "utf8").catch(async () => {
+    return fs.readFile(fallback, "utf8");
+  });
+  return JSON.parse(file);
 }
 
-let cache: PortfolioData | null = null
-
-export async function getPortfolio(): Promise<PortfolioData> {
-  if (cache) return cache
-  const file = path.join(process.cwd(), 'data', 'portfolio.content.json')
-  try {
-    const json = await fs.readFile(file, 'utf8')
-    cache = JSON.parse(json)
-    return cache
-  } catch {
-    return {
-      owner: { name: '', tagline: '', role_modes: [] },
-      highlights: {},
-      segments: [],
-    }
-  }
-}
